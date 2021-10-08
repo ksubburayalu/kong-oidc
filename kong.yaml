@@ -1,0 +1,206 @@
+_format_version: "1.1"
+_workspace: DemoAppSecurity
+services:
+- connect_timeout: 60000
+  host: mockbin.org
+  name: DemoAPI
+  port: 443
+  protocol: https
+  read_timeout: 60000
+  retries: 5
+  write_timeout: 60000
+  routes:
+  - name: MobileAPI
+    paths:
+    - /m/api/*
+    path_handling: v0
+    preserve_host: false
+    protocols:
+    - https
+    regex_priority: 0
+    strip_path: true
+    https_redirect_status_code: 426
+    request_buffering: true
+    response_buffering: true
+    plugins:
+    - name: openid-connect
+      config:
+        auth_methods:
+        - refresh_token
+        client_auth:
+        - none
+        client_id:
+        - ChangeClientId
+        consumer_optional: true
+        issuer: https://keycloak.iam.svc.cluster.local/auth/realms/master
+        refresh_token_param_name: refresh_token
+        session_cookie_lifetime: 36000
+        session_cookie_renew: 6000
+        session_redis_host: 172.18.0.5
+        session_redis_port: 6379
+        session_redis_prefix: sessions
+        session_secret: changesecretvalue
+        session_storage: redis
+        unauthorized_error_message: Unauthorized
+        unauthorized_redirect_uri:
+        - https://mobile.app.com/unauthorized
+        upstream_access_token_header: authorization:bearer
+      enabled: true
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+  - name: WebAPI
+    paths:
+    - /web/api/*
+    path_handling: v0
+    preserve_host: false
+    protocols:
+    - https
+    regex_priority: 0
+    strip_path: true
+    https_redirect_status_code: 426
+    request_buffering: true
+    response_buffering: true
+    plugins:
+    - name: openid-connect
+      config:
+        auth_methods:
+        - session
+        client_id:
+        - ChangeClientID
+        client_secret:
+        - ChangeClientSecret
+        consumer_optional: true
+        issuer: https://keycloak.iam.svc.cluster.local/auth/realms/master
+        scopes:
+        - openid
+        session_cookie_lifetime: 3600
+        session_cookie_renew: 600
+        session_redis_host: 172.18.0.5
+        session_redis_port: 6379
+        session_redis_prefix: sessions
+        session_secret: changesecretvalue
+        session_storage: redis
+        unauthorized_error_message: Unauthorized
+        unauthorized_redirect_uri:
+        - https://example.web.com/unauthorized
+      enabled: true
+      protocols:
+      - grpc
+      - grpcs
+      - http
+      - https
+routes:
+- name: MobileLogin
+  paths:
+  - /mlogin
+  path_handling: v0
+  preserve_host: false
+  protocols:
+  - https
+  regex_priority: 0
+  strip_path: true
+  https_redirect_status_code: 426
+  request_buffering: true
+  response_buffering: true
+  plugins:
+  - name: openid-connect
+    config:
+      auth_methods:
+      - session
+      - authorization_code
+      client_auth:
+      - none
+      client_id:
+      - ChangeClientId
+      client_secret: null
+      consumer_by:
+      - username
+      - custom_id
+      consumer_optional: true
+      issuer: https://keycloak.iam.svc.cluster.local/auth/realms/master
+      login_action: redirect
+      login_methods:
+      - authorization_code
+      login_redirect_mode: query
+      login_redirect_uri:
+      - https://mobile.app.com/somepage
+      login_tokens:
+      - id_token
+      - refresh_token
+      logout_methods:
+      - POST
+      - DELETE
+      scopes:
+      - openid
+      - offline_access
+      scopes_claim:
+      - scope
+      session_cookie_lifetime: 36000
+      session_cookie_renew: 6000
+      session_redis_host: 172.18.0.5
+      session_redis_port: 6379
+      session_redis_prefix: sessions
+      session_secret: changesecretvalue
+      session_storage: redis
+      unauthorized_error_message: Unauthorized
+      unauthorized_redirect_uri:
+      - https://mobile.app.com/unauthorized
+    enabled: true
+    protocols:
+    - grpc
+    - grpcs
+    - http
+    - https
+- name: WebLogin
+  paths:
+  - /wlogin
+  path_handling: v0
+  preserve_host: false
+  protocols:
+  - https
+  regex_priority: 0
+  strip_path: true
+  https_redirect_status_code: 426
+  request_buffering: true
+  response_buffering: true
+  plugins:
+  - name: openid-connect
+    config:
+      auth_methods:
+      - authorization_code
+      - session
+      client_id:
+      - ChangeClientId
+      client_secret:
+      - ChangeClientSecret
+      consumer_optional: true
+      issuer: https://keycloak.iam.svc.cluster.local/auth/realms/master
+      login_action: redirect
+      login_methods:
+      - authorization_code
+      login_redirect_mode: fragment
+      login_redirect_uri:
+      - https://example.web.com/landingpage
+      scopes:
+      - openid
+      scopes_claim:
+      - scope
+      session_cookie_lifetime: 3600
+      session_cookie_renew: 600
+      session_redis_host: 172.18.0.5
+      session_redis_port: 6379
+      session_redis_prefix: sessions
+      session_secret: changesecretvalue
+      session_storage: redis
+      unauthorized_error_message: Unauthorized
+      unauthorized_redirect_uri:
+      - https://example.web.com/unauthorized
+    enabled: true
+    protocols:
+    - grpc
+    - grpcs
+    - http
+    - https
